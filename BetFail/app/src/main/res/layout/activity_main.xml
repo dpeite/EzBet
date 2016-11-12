@@ -12,5 +12,40 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="VS"
+        android:id="@+id/vs"
+        android:layout_marginTop="140dp"
+        android:layout_centerHorizontal="true" />
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner_jugador1"
+        android:layout_marginTop="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:textAlignment="textStart"
+        android:dropDownWidth="match_parent" />
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner_jugador2"
+        android:layout_marginTop="180dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:textAlignment="textStart"
+        android:dropDownWidth="match_parent" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Obtener ganador"
+        android:id="@+id/button"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="60dp"
+        android:theme="@style/MyButton"
+        android:onClick="obtenerGanador"/>
+
 </RelativeLayout>
