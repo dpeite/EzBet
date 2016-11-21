@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BetFail</string>
+    <string name="title_activity_results">ResultsActivity</string>
 </resources>
