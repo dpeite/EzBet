@@ -1,8 +1,13 @@
-import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import com.opencsv.CSVReader;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * 
@@ -14,172 +19,286 @@ import com.opencsv.CSVReader;
  */
 public class Main {
 
-	static ArrayList<Double[]> listBuffer = new ArrayList<Double[]>();
-
 	/**
 	 * @param args
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public static void main(String[] args) throws IOException {
-
-		for (int i = 0; i < 2; i++) {
-			listBuffer.add(new Double[10]);
+	public static void main(String[] args) throws IOException, InterruptedException {
+		Double[] beta = new Double[2];
+		
+		for (int i = 2004; i < 2015; i++) {
+			System.out.println(i);
+			beta = logisticRegression(getJugadores(Integer.toString(i)), Integer.toString(i));
 		}
-
-		logisticRegression(getTrainingData());
+		
+		System.out.println("Todo va como dios manda");
+		
+		double por = (float) testeoSistema(beta) * 100.0;
+		
+		System.out.println("El porcentaje de acierto del sistema es del " + por + "%.");
+		
+		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+		
+		while(true) {
+			System.out.println("Jug1: ");
+			String jug1 = bf.readLine();
+			
+			System.out.println("Jug2: ");
+			String jug2 = bf.readLine();
+			
+			estimarResultado(jug1, jug2, beta);
+		} 
 
 	}
 
-	private static ArrayList<Partido> getTrainingData() throws IOException {
+	private static Double[] logisticRegression(ArrayList<Jugador> data, String year)
+			throws JsonParseException, JsonMappingException, IOException {
+		String path = "/home/manu/Uni/PSI/json/jugadores/" + year + "/";
+		File f = null;
+		Jugador contrincante = null;
+		Integer aux = 0;
 
-		CSVReader reader = new CSVReader(
-				new FileReader("/home/manu/atp/tennis-prediction/Data/Non-Oncourt/atp_matches_2015.csv"));
-		String[] nextLine;
-		ArrayList<Partido> data = new ArrayList<Partido>();
-
-		reader.readNext();
-		while ((nextLine = reader.readNext()) != null) {
-
-			data.add(rellenarPartido(nextLine));
-		} // Cierre while
-
-		return data;
-
-	} // Cierre getTrainingData
-
-	private static void logisticRegression(ArrayList<Partido> data) {
-
-		Integer[] x = new Integer[2];
-		Double[] theta = new Double[] { 1.0, 1.0 };
+		Double[] beta = new Double[] { 1.0, 1.0 };
+		Double[] x = new Double[2];
 
 		double hipotesis = 0.0;
+		ArrayList<Partido> partidos = null;
+		ArrayList<Double> listaHipo = new ArrayList<Double>();
+		ArrayList<Double[]> listaX = new ArrayList<Double[]>();
+		ArrayList<Jugador> listaContrincantes = new ArrayList<Jugador>();
 
-		ArrayList<Double> listHipotesis = new ArrayList<Double>();
-		ArrayList<Integer[]> listX = new ArrayList<Integer[]>();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		// Vamos a testear primero usando como caracteristica el ganar el primer
-		// saque
-		for(int j = 0; j < 2000;j++) {
-		for (Partido part : data) {
+	//	for (int k = 0; k < 6000; k++) {
+			for (Jugador jug : data) {
+				partidos = jug.getPartidos();
+				aux = 0;
 
-			x[0] = part.getLoserPrimerSaqueGanado() - part.getWinnerPrimerSaqueGanado();
-			x[1] = part.getLoserPrimerSaqueDentro() - part.getWinnerPrimerSaqueDentro();
+				for (Partido part : partidos) {
 
-			for (int i = 0; i < x.length; i++) {
-				hipotesis += x[i] * theta[i];
+					// Para minimizar las lecturas de disco
+				//	if (k < 1) {
+						f = new File(path + toNombreFichero(part.getContrincante()) + ".json");
+						contrincante = mapper.readValue(f, Jugador.class);
+						listaContrincantes.add(contrincante);
+
+				//	} else {
+				//		contrincante = listaContrincantes.get(aux);
+				//		aux++;
+				//	}
+
+					Double wsp1 = jug.getGanarPuntoSacando();
+					Double wsp2 = contrincante.getGanarPuntoSacando();
+					Double wrp1 = jug.getGanarPuntoRestando();
+					Double wrp2 = contrincante.getGanarPuntoRestando();
+
+					Double direct1 = wsp1 - wrp2;
+					Double direct2 = wsp2 - wrp1;
+
+					Double serveadv = direct1 - direct2;
+
+					Double complet1 = wsp1 * wrp1;
+					Double complet2 = wsp2 * wrp2;
+
+					Double complet = complet1 - complet2;
+
+					x[0] = serveadv;
+					x[1] = complet;
+
+					for (int j = 0; j < x.length; j++) {
+						hipotesis += x[j] * beta[j];
+					}
+
+					listaHipo.add(sigmoid(hipotesis));
+					listaX.add(x);
+					hipotesis = 0.0;
+					x = new Double[2];
+
+				} // Cierre for Partidos
+			} // Cierre for Jugadores
+
+			beta = derivadaFuncionCoste(listaX, listaHipo, beta);
+
+			listaHipo = new ArrayList<Double>();
+			listaX = new ArrayList<Double[]>();
+	//	} // Cierre for iteraciones
+		
+		return beta;
+	}
+	
+	private static void estimarResultado(String jugador1, String jugador2, Double[] beta) throws JsonParseException, JsonMappingException, IOException {
+		
+		Double[] x = new Double[2];
+		double hipotesis = 0.0;
+		
+		Jugador jug1 = leerJSONJugador(jugador1);
+		Jugador jug2 = leerJSONJugador(jugador2);
+		
+		Double wsp1 = jug1.getGanarPuntoSacando();
+		Double wsp2 = jug2.getGanarPuntoSacando();
+		Double wrp1 = jug1.getGanarPuntoRestando();
+		Double wrp2 = jug2.getGanarPuntoRestando();
+
+		Double direct1 = wsp1 - wrp2;
+		Double direct2 = wsp2 - wrp1;
+
+		Double serveadv = direct1 - direct2;
+
+		Double complet1 = wsp1 * wrp1;
+		Double complet2 = wsp2 * wrp2;
+
+		Double complet = complet1 - complet2;
+		
+		x[0] = serveadv;
+		x[1] = complet;
+
+		for (int j = 0; j < x.length; j++) {
+			hipotesis += x[j] * beta[j];
+		}
+		
+		System.out.println("Nuestra estimación es que " + jugador1 + " tiene " + sigmoid(hipotesis) + " probabilidades de ganar.");
+		
+	} // Cierre estimarResultado
+	
+	private static double estimarResultado(Jugador jugador1, Jugador jugador2, Double[] beta) throws JsonParseException, JsonMappingException, IOException {
+		
+		Double[] x = new Double[2];
+		double hipotesis = 0.0;
+		
+		Double wsp1 = jugador1.getGanarPuntoSacando();
+		Double wsp2 = jugador2.getGanarPuntoSacando();
+		Double wrp1 = jugador1.getGanarPuntoRestando();
+		Double wrp2 = jugador2.getGanarPuntoRestando();
+
+		Double direct1 = wsp1 - wrp2;
+		Double direct2 = wsp2 - wrp1;
+
+		Double serveadv = direct1 - direct2;
+
+		Double complet1 = wsp1 * wrp1;
+		Double complet2 = wsp2 * wrp2;
+
+		Double complet = complet1 - complet2;
+		
+		x[0] = serveadv;
+		x[1] = complet;
+
+		for (int j = 0; j < x.length; j++) {
+			hipotesis += x[j] * beta[j];
+		}
+		
+		return sigmoid(hipotesis);
+	} // Cierre estimarResultado
+	
+	private static Jugador leerJSONJugador(String jugador) throws JsonParseException, JsonMappingException, IOException {
+		String path = "/home/manu/Uni/PSI/json/jugadores/2015/";
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		
+		return mapper.readValue(new File(path + toNombreFichero(jugador) + ".json"), Jugador.class);
+	} // Cierre leerJSONJugador
+
+	private static Double[] derivadaFuncionCoste(ArrayList<Double[]> listX, ArrayList<Double> listHipotesis,
+			Double[] theta) {
+
+		double alpha = 0.05, aux0 = 0.0, aux1 = 0.0;
+
+		for (int i = 0; i < listX.size(); i++) {
+			aux0 += (listHipotesis.get(i) - 1) * listX.get(i)[0];
+			aux1 += (listHipotesis.get(i) - 1) * listX.get(i)[1];
+		}
+
+		aux0 = aux0 / listX.size();
+		aux1 = aux1 / listX.size();
+
+		theta[0] -= alpha * aux0;
+		theta[1] -= alpha * aux1;
+
+		return theta;
+	}
+
+	private static ArrayList<Jugador> getJugadores(String year)
+			throws JsonParseException, JsonMappingException, IOException {
+
+		String path = "/home/manu/Uni/PSI/json/jugadores/" + year;
+		ArrayList<Jugador> jugadores = new ArrayList<Jugador>();
+		ObjectMapper mapper = null;
+
+		mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+		File folder = new File(path);
+		File[] listOfFiles = folder.listFiles();
+
+		for (File file : listOfFiles) {
+			if (file.isFile()) {
+				jugadores.add(mapper.readValue(file, Jugador.class));
 			}
-
-			listX.add(new Integer[]{part.getWinnerPrimerSaqueGanado() - part.getLoserPrimerSaqueGanado(), part.getWinnerPrimerSaqueDentro() - part.getLoserPrimerSaqueDentro()});
-			listHipotesis.add(sigmoid(hipotesis));
-			hipotesis = 0.0;
-			
-			x[0] = part.getWinnerPrimerSaqueGanado() - part.getLoserPrimerSaqueGanado();
-			x[1] = part.getWinnerPrimerSaqueDentro() - part.getLoserPrimerSaqueDentro();
-
-			for (int i = 0; i < x.length; i++) {
-				hipotesis += x[i] * theta[i];
-			}
-
-			listX.add(new Integer[]{part.getLoserPrimerSaqueGanado() - part.getWinnerPrimerSaqueGanado(), part.getLoserPrimerSaqueDentro() - part.getWinnerPrimerSaqueDentro()});
-			listHipotesis.add(sigmoid(hipotesis));
-			hipotesis = 0.0;
 		}
 
-		theta = derivadaFuncionCoste(listX, listHipotesis, theta);
-		
-		//System.out.println("--------------------------------------");
-		
-		if (j != 1999) {
-		listHipotesis = new ArrayList<Double>();
-		listX = new ArrayList<Integer[]>();	
-		}
-		}
-		
-	//	System.out.println(theta[0]);
-		for (Double dou: listHipotesis) {
-			
-			//System.out.println(dou);
-		}
-		
-		
-		System.out.println(theta[0]);
-		System.out.println(theta[1]);
+		return jugadores;
+	} // Cierre getJugadores
+	
+	private static double testeoSistema(Double[] beta) throws JsonParseException, JsonMappingException, IOException {
+		String path = "/home/manu/Uni/PSI/json/jugadores/2015/";
+		Jugador contrincante = null;
+		Integer aciertos = 0, fallos = 0;
+		double rendimiento = 0.0, desviacion = 0.0;
 
-	} // Cierre logisticRegression
+		double hipotesis = 0.0;
+		ArrayList<Partido> partidos = null;
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		
+		ArrayList<Jugador> data = getJugadores("2015");
+		
+		for (Jugador jug : data) {
+			partidos = jug.getPartidos();
+
+			for (Partido part : partidos) {
+				
+				// Obtenemos al contrincante
+				contrincante = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"), Jugador.class);
+				
+				hipotesis = estimarResultado(jug, contrincante, beta);
+				
+				if(part.getGanador()) {
+					if (hipotesis > 0.5) {
+						aciertos++;
+					} else{
+						desviacion += (0.5 - hipotesis);
+						fallos++;
+					}
+				} else {
+					if (hipotesis > 0.5) {
+						desviacion += (hipotesis - 0.5);
+						fallos++;
+					} else{
+						aciertos++;
+					}
+				} // Cierre if ganador
+			} // Cierre for Partidos
+		} // Cierre for Jugadores
+		
+		desviacion /=fallos;
+		System.out.println("Aciertos: " + aciertos);
+		System.out.println("Fallos: " + fallos);
+		System.out.println("Desviación: " + desviacion);
+		rendimiento = (float) aciertos / (aciertos + fallos);
+		
+		return rendimiento;
+		
+	} // Cierre testeoSistema
 
 	private static double sigmoid(double hipotesis) {
 		return 1.0 / (1 + Math.pow(Math.E, (-hipotesis)));
 	}
 
-	private static Double[] derivadaFuncionCoste(ArrayList<Integer[]> listX, ArrayList<Double> listHipotesis,
-			Double[] theta) {
-
-		double alpha = 0.05;
-		double aux0 = 0.0, aux1 = 0.0;
-		boolean orden = true;
-
-		if (listHipotesis.get(0) == 1.0 || listHipotesis.get(0) == 0.0) {
-			return theta;
-		}
-
-		for (int i = 0; i < listX.size(); i++) {
-			
-			if (orden) {
-				aux0 += (listHipotesis.get(i) - 1) * listX.get(i)[0];
-				aux1 += (listHipotesis.get(i) - 1) * listX.get(i)[1];
-				
-				orden = false;
-			}else {
-				aux0 += (listHipotesis.get(i)) * listX.get(i)[0];
-				aux1 += (listHipotesis.get(i)) * listX.get(i)[1];
-				
-				orden = true;
-			}
-
-		}
-
-		aux0 = aux0 / listX.size();
-		aux1 = aux1 / listX.size();
-		
-		theta[0] -= alpha * aux0;
-		theta[1] -= alpha * aux0;
-		
-		System.out.println(theta[0]);
-
-		aux0 = 0.0;
-		aux1 = 0.0;
-
-		return theta;
+	private static String toNombreFichero(String nombre) {
+		return nombre.toLowerCase().replace(" ", "_");
 	}
 
-	private static Partido rellenarPartido(String[] nextLine) {
-
-		Partido partido = new Partido();
-
-		partido.setTorneo(nextLine[1]);
-		partido.setFecha(nextLine[5]);
-		partido.setSuperficie(nextLine[2]);
-		partido.setResultado(nextLine[27]);
-		partido.setContrincante(nextLine[20]);
-		partido.setGanador(true);
-
-		partido.setWinnerAces(Integer.parseInt(nextLine[31]));
-		partido.setWinnerDobleFalta(Integer.parseInt(nextLine[32]));
-		partido.setWinnerServingPoints(Integer.parseInt(nextLine[33]));
-		partido.setWinnerPrimerSaqueDentro(Integer.parseInt(nextLine[34]));
-		partido.setWinnerPrimerSaqueGanado(Integer.parseInt(nextLine[35]));
-		partido.setWinnerSegundoSaqueGanado(Integer.parseInt(nextLine[36]));
-		partido.setWinnerServingGames(Integer.parseInt(nextLine[37]));
-
-		partido.setLoserAces(Integer.parseInt(nextLine[40]));
-		partido.setLoserDobleFalta(Integer.parseInt(nextLine[41]));
-		partido.setLoserServingPoints(Integer.parseInt(nextLine[42]));
-		partido.setLoserPrimerSaqueDentro(Integer.parseInt(nextLine[43]));
-		partido.setLoserPrimerSaqueGanado(Integer.parseInt(nextLine[44]));
-		partido.setLoserSegundoSaqueGanado(Integer.parseInt(nextLine[45]));
-		partido.setLoserServingGames(Integer.parseInt(nextLine[46]));
-
-		return partido;
-	}
-
-}
+} // Cierre class
