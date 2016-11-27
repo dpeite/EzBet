@@ -55,7 +55,9 @@ public class Main {
 	private static Double[] logisticRegression(ArrayList<Jugador> data, String year)
 			throws JsonParseException, JsonMappingException, IOException {
 		String path = "/home/manu/Uni/PSI/json/jugadores/" + year + "/";
+		File f = null;
 		Jugador contrincante = null;
+		Integer aux = 0;
 
 		Double[] beta = new Double[] { 1.0, 1.0, 1.0 };
 		Double[] x = new Double[3];
@@ -71,6 +73,7 @@ public class Main {
 
 		for (Jugador jug : data) {
 			partidos = jug.getPartidos();
+			aux = 0;
 
 			for (Partido part : partidos) {
 				contrincante = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"),

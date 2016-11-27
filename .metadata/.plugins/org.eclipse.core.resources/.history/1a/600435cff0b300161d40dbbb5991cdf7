@@ -55,7 +55,9 @@ public class Main {
 	private static Double[] logisticRegression(ArrayList<Jugador> data, String year)
 			throws JsonParseException, JsonMappingException, IOException {
 		String path = "/home/manu/Uni/PSI/json/jugadores/" + year + "/";
+		File f = null;
 		Jugador contrincante = null;
+		Integer aux = 0;
 
 		Double[] beta = new Double[] { 1.0, 1.0, 1.0 };
 		Double[] x = new Double[3];
@@ -71,6 +73,7 @@ public class Main {
 
 		for (Jugador jug : data) {
 			partidos = jug.getPartidos();
+			aux = 0;
 
 			for (Partido part : partidos) {
 				contrincante = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"),
@@ -300,34 +303,38 @@ public class Main {
 	}
 
 	// TODO Direct de todos los años, no solo del último
-	private static double calcularDirect(Jugador jug1, Jugador jug2) throws JsonParseException, JsonMappingException, IOException {
-		String nombre2 = jug2.getNombre(), path = "/home/manu/Uni/PSI/json/jugadores/";
+	private static double calcularDirect(Jugador jug1, Jugador jug2) {
+		String nombre2 = jug2.getNombre();
+		String path = "/home/manu/Uni/PSI/json/jugadores/";
 		Integer victorias1 = 0, victorias2 = 0, totalPartidos = 0;
 		double por1 = 0.0, por2 = 0.0;
 		File f = null;
 		
 		Jugador jugadorAux = null;
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		
-		for (int i = 2005; i <= 2015; i++) {	
+		for (int i = 2005; i <= 2015; i++) {
+			
 			f = new File(path + Integer.toString(i) + "/" + toNombreFichero(jug1.getNombre()) + ".json");
 			
 			if (f.exists()) {
-				jugadorAux = mapper.readValue(f, Jugador.class);
 				
-				for (Partido part : jugadorAux.getPartidos()) {
-					if (part.getContrincante().equals(nombre2)) {
-						if (part.getGanador()) {
-							victorias1++;
-						} else {
-							victorias2++;
-						}
-					}
-				} // Cierre for Partido
-			} // Cierre if exists		
-		} // Cierre for años
-		
+				
+			}
+			
+			
+		}
+
+		for (Partido part : jug1.getPartidos()) {
+
+			if (part.getContrincante().equals(nombre2)) {
+				if (part.getGanador()) {
+					victorias1++;
+				} else {
+					victorias2++;
+				}
+			}
+		} // Cierre for Partido
+
 		totalPartidos = victorias1 + victorias2;
 
 		if (totalPartidos == 0) {
