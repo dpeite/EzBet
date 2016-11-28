@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -18,6 +19,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  *
  */
 public class Main {
+	
+	static ArrayList<HashMap<String,Jugador>> jugadores = new ArrayList<HashMap<String,Jugador>>();
+	static ArrayList<ArrayList<Jugador>> jugadoresList = new ArrayList<ArrayList<Jugador>>();
 
 	/**
 	 * @param args
@@ -28,8 +32,13 @@ public class Main {
 		Double[] beta = new Double[3];
 
 		for (int i = 2004; i < 2015; i++) {
+			//jugadores.add(getJugadores(Integer.toString(i)))		
+		} 
+		
+		for (int i = 2004; i < 2015; i++) {
 			System.out.println(i);
-			beta = logisticRegression(getJugadores(Integer.toString(i)), Integer.toString(i));
+			jugadores.add(getJugadores(Integer.toString(i)));
+			beta = logisticRegression(jugadoresList.get(i - 2004), Integer.toString(i));
 		}
 
 		System.out.println("Todo va como dios manda");
@@ -216,12 +225,14 @@ public class Main {
 		return theta;
 	}
 
-	private static ArrayList<Jugador> getJugadores(String year)
+	private static HashMap<String,Jugador> getJugadores(String year)
 			throws JsonParseException, JsonMappingException, IOException {
 
 		String path = "/home/manu/Uni/PSI/json/jugadores/" + year;
-		ArrayList<Jugador> jugadores = new ArrayList<Jugador>();
+		HashMap<String,Jugador> jugadores = new HashMap<String,Jugador>();
+		ArrayList<Jugador> jugadorList = new ArrayList<Jugador>();
 		ObjectMapper mapper = null;
+		Jugador jugAux = null;
 
 		mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -231,11 +242,39 @@ public class Main {
 
 		for (File file : listOfFiles) {
 			if (file.isFile()) {
-				jugadores.add(mapper.readValue(file, Jugador.class));
+				jugAux = mapper.readValue(file, Jugador.class);
+				jugadores.put(toNombreFichero(jugAux.getNombre()), jugAux);
+				jugadorList.add(jugAux);
+			}
+		}
+		
+		jugadoresList.add(jugadorList);
+
+		return jugadores;
+	} // Cierre getJugadores
+	
+	private static ArrayList<Jugador> getJugadoresArray(String year)
+			throws JsonParseException, JsonMappingException, IOException {
+
+		String path = "/home/manu/Uni/PSI/json/jugadores/" + year;
+		ArrayList<Jugador> jugadorList = new ArrayList<Jugador>();
+		ObjectMapper mapper = null;
+		Jugador jugAux = null;
+
+		mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+		File folder = new File(path);
+		File[] listOfFiles = folder.listFiles();
+
+		for (File file : listOfFiles) {
+			if (file.isFile()) {
+				jugAux = mapper.readValue(file, Jugador.class);
+				jugadorList.add(jugAux);
 			}
 		}
 
-		return jugadores;
+		return jugadorList;
 	} // Cierre getJugadores
 
 	private static double testeoSistema(Double[] beta) throws JsonParseException, JsonMappingException, IOException {
@@ -250,7 +289,7 @@ public class Main {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		ArrayList<Jugador> data = getJugadores("2015");
+		ArrayList<Jugador> data = getJugadoresArray("2015");
 
 		for (Jugador jug : data) {
 			partidos = jug.getPartidos();
@@ -299,18 +338,37 @@ public class Main {
 		return nombre.toLowerCase().replace(" ", "_");
 	}
 
-	// TODO Direct de todos los años, no solo del último
 	private static double calcularDirect(Jugador jug1, Jugador jug2) throws JsonParseException, JsonMappingException, IOException {
 		String nombre2 = jug2.getNombre(), path = "/home/manu/Uni/PSI/json/jugadores/";
 		Integer victorias1 = 0, victorias2 = 0, totalPartidos = 0;
 		double por1 = 0.0, por2 = 0.0;
-		File f = null;
 		
+		//for (int i = 0; i < jugadores.size(); i++) {
+			
+			Jugador jugador1 = jugadores.get(jugadores.size() - 1).get(toNombreFichero(jug1.getNombre()));
+			
+			if (jugador1 != null) {
+				for (Partido part : jugador1.getPartidos()) {
+					if (part.getContrincante().equals(nombre2)) {
+						if (part.getGanador()) {
+							victorias1++;
+						} else {
+							victorias2++;
+						}
+					}
+				} // Cierre for Partido
+			}
+
+			
+			
+	//	} // Cierre for años
+		
+		/*File f = null;		
 		Jugador jugadorAux = null;
 		ObjectMapper mapper = new ObjectMapper();
-		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		mapper.enable(SerializationFeature.INDENT_OUTPUT); 
 		
-		for (int i = 2005; i <= 2015; i++) {	
+		for (int i = 2004; i < 2015; i++) {	
 			f = new File(path + Integer.toString(i) + "/" + toNombreFichero(jug1.getNombre()) + ".json");
 			
 			if (f.exists()) {
@@ -327,6 +385,8 @@ public class Main {
 				} // Cierre for Partido
 			} // Cierre if exists		
 		} // Cierre for años
+		*/
+		
 		
 		totalPartidos = victorias1 + victorias2;
 
