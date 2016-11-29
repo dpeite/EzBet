@@ -29,7 +29,7 @@ public class Main {
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Double[] beta = new Double[3];
+		Double[] beta = new Double[4];
 
 		for (int i = 2004; i < 2015; i++) {
 			//jugadores.add(getJugadores(Integer.toString(i)))		
@@ -66,8 +66,8 @@ public class Main {
 		String path = "/home/manu/Uni/PSI/json/jugadores/" + year + "/";
 		Jugador contrincante = null;
 
-		Double[] beta = new Double[] { 1.0, 1.0, 1.0 };
-		Double[] x = new Double[3];
+		Double[] beta = new Double[] { 1.0, 1.0, 1.0, 1.0 };
+		Double[] x = new Double[4];
 
 		double hipotesis = 0.0;
 		ArrayList<Partido> partidos = null;
@@ -104,6 +104,7 @@ public class Main {
 				x[0] = serveadv;
 				x[1] = complet;
 				x[2] = calcularDirect(jug, contrincante);
+				x[3] = calcularAces(jug, contrincante);
 
 				for (int j = 0; j < x.length; j++) {
 					hipotesis += x[j] * beta[j];
@@ -112,7 +113,7 @@ public class Main {
 				listaHipo.add(sigmoid(hipotesis));
 				listaX.add(x);
 				hipotesis = 0.0;
-				x = new Double[3];
+				x = new Double[4];
 
 			} // Cierre for Partidos
 		} // Cierre for Jugadores
@@ -128,7 +129,7 @@ public class Main {
 	private static void estimarResultado(String jugador1, String jugador2, Double[] beta)
 			throws JsonParseException, JsonMappingException, IOException {
 
-		Double[] x = new Double[3];
+		Double[] x = new Double[4];
 		double hipotesis = 0.0;
 
 		Jugador jug1 = leerJSONJugador(jugador1);
@@ -152,6 +153,7 @@ public class Main {
 		x[0] = serveadv;
 		x[1] = complet;
 		x[2] = calcularDirect(jug1, jug2);
+		x[3] = calcularAces(jug1, jug2);
 
 		for (int j = 0; j < x.length; j++) {
 			hipotesis += x[j] * beta[j];
@@ -165,7 +167,7 @@ public class Main {
 	private static double estimarResultado(Jugador jugador1, Jugador jugador2, Double[] beta)
 			throws JsonParseException, JsonMappingException, IOException {
 
-		Double[] x = new Double[3];
+		Double[] x = new Double[4];
 		double hipotesis = 0.0;
 
 		Double wsp1 = jugador1.getGanarPuntoSacando();
@@ -186,6 +188,7 @@ public class Main {
 		x[0] = serveadv;
 		x[1] = complet;
 		x[2] = calcularDirect(jugador1, jugador2);
+		x[3] = calcularAces(jugador1, jugador2);
 
 		for (int j = 0; j < x.length; j++) {
 			hipotesis += x[j] * beta[j];
@@ -206,21 +209,24 @@ public class Main {
 	private static Double[] derivadaFuncionCoste(ArrayList<Double[]> listX, ArrayList<Double> listHipotesis,
 			Double[] theta) {
 
-		double alpha = 0.05, aux0 = 0.0, aux1 = 0.0, aux2 = 0.0;
+		double alpha = 0.05, aux0 = 0.0, aux1 = 0.0, aux2 = 0.0, aux3 = 0.0;
 
 		for (int i = 0; i < listX.size(); i++) {
 			aux0 += (listHipotesis.get(i) - 1) * listX.get(i)[0];
 			aux1 += (listHipotesis.get(i) - 1) * listX.get(i)[1];
 			aux2 += (listHipotesis.get(i) - 1) * listX.get(i)[2];
+			aux3 += (listHipotesis.get(i) - 1) * listX.get(i)[3];
 		}
 
 		aux0 = aux0 / listX.size();
 		aux1 = aux1 / listX.size();
 		aux2 = aux2 / listX.size();
+		aux3 = aux3 / listX.size();
 
 		theta[0] -= alpha * aux0;
 		theta[1] -= alpha * aux1;
 		theta[2] -= alpha * aux2;
+		theta[3] -= alpha * aux3;
 
 		return theta;
 	}
@@ -339,7 +345,7 @@ public class Main {
 	}
 
 	private static double calcularDirect(Jugador jug1, Jugador jug2) throws JsonParseException, JsonMappingException, IOException {
-		String nombre2 = jug2.getNombre(), path = "/home/manu/Uni/PSI/json/jugadores/";
+		String nombre2 = jug2.getNombre();
 		Integer victorias1 = 0, victorias2 = 0, totalPartidos = 0;
 		double por1 = 0.0, por2 = 0.0;
 		
@@ -363,7 +369,8 @@ public class Main {
 			
 	//	} // Cierre for años
 		
-		/*File f = null;		
+		/*File f = null;
+		String path = "/home/manu/Uni/PSI/json/jugadores/";		
 		Jugador jugadorAux = null;
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT); 
@@ -400,5 +407,9 @@ public class Main {
 		return por1 - por2;
 
 	} // Cierre calcularDirect
+	
+	private static double calcularAces(Jugador jug1, Jugador jug2) {
+		return jug1.getProbAce() - jug2.getProbAce();
+	}
 
 } // Cierre class
