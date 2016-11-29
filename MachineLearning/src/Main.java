@@ -22,6 +22,7 @@ public class Main {
 	
 	static ArrayList<HashMap<String,Jugador>> jugadores = new ArrayList<HashMap<String,Jugador>>();
 	static ArrayList<ArrayList<Jugador>> jugadoresList = new ArrayList<ArrayList<Jugador>>();
+	private static Integer size = 5;
 
 	/**
 	 * @param args
@@ -29,11 +30,13 @@ public class Main {
 	 * @throws InterruptedException
 	 */
 	public static void main(String[] args) throws IOException, InterruptedException {
-		Double[] beta = new Double[4];
+		Double[] beta = new Double[size];
 
-		for (int i = 2004; i < 2015; i++) {
-			//jugadores.add(getJugadores(Integer.toString(i)))		
+		for (int i = 0; i < size; i++) {
+			beta[i] = 1.0;	
 		} 
+		
+		System.out.println(beta.length);
 		
 		for (int i = 2004; i < 2015; i++) {
 			System.out.println(i);
@@ -55,8 +58,11 @@ public class Main {
 
 			System.out.println("Jug2: ");
 			String jug2 = bf.readLine();
+			
+			System.out.println("Superficie: ");
+			String superficie = bf.readLine();
 
-			estimarResultado(jug1, jug2, beta);
+			estimarResultado(jug1, jug2, superficie,beta);
 		}
 
 	}
@@ -64,47 +70,32 @@ public class Main {
 	private static Double[] logisticRegression(ArrayList<Jugador> data, String year)
 			throws JsonParseException, JsonMappingException, IOException {
 		String path = "/home/manu/Uni/PSI/json/jugadores/" + year + "/";
-		Jugador contrincante = null;
+		Jugador jug2 = null;
 
-		Double[] beta = new Double[] { 1.0, 1.0, 1.0, 1.0 };
-		Double[] x = new Double[4];
+		Double[] beta = new Double[size];
+		Double[] x = new Double[size];
+		
+		// Generamos el vector de pesos
+		for (int i = 0; i < size; i++) {
+			beta[i] = 1.0;	
+		}
 
 		double hipotesis = 0.0;
 		ArrayList<Partido> partidos = null;
 		ArrayList<Double> listaHipo = new ArrayList<Double>();
 		ArrayList<Double[]> listaX = new ArrayList<Double[]>();
-		ArrayList<Jugador> listaContrincantes = new ArrayList<Jugador>();
 
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		for (Jugador jug : data) {
-			partidos = jug.getPartidos();
+		for (Jugador jug1 : data) {
+			partidos = jug1.getPartidos();
 
 			for (Partido part : partidos) {
-				contrincante = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"),
+				jug2 = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"),
 						Jugador.class);
-				listaContrincantes.add(contrincante);
 
-				Double wsp1 = jug.getGanarPuntoSacando();
-				Double wsp2 = contrincante.getGanarPuntoSacando();
-				Double wrp1 = jug.getGanarPuntoRestando();
-				Double wrp2 = contrincante.getGanarPuntoRestando();
-
-				Double direct1 = wsp1 - wrp2;
-				Double direct2 = wsp2 - wrp1;
-
-				Double serveadv = direct1 - direct2;
-
-				Double complet1 = wsp1 * wrp1;
-				Double complet2 = wsp2 * wrp2;
-
-				Double complet = complet1 - complet2;
-
-				x[0] = serveadv;
-				x[1] = complet;
-				x[2] = calcularDirect(jug, contrincante);
-				x[3] = calcularAces(jug, contrincante);
+				x = calcularCaracteristicas(jug1, jug2, part.getSuperficie());
 
 				for (int j = 0; j < x.length; j++) {
 					hipotesis += x[j] * beta[j];
@@ -113,7 +104,7 @@ public class Main {
 				listaHipo.add(sigmoid(hipotesis));
 				listaX.add(x);
 				hipotesis = 0.0;
-				x = new Double[4];
+				x = new Double[size];
 
 			} // Cierre for Partidos
 		} // Cierre for Jugadores
@@ -126,34 +117,16 @@ public class Main {
 		return beta;
 	}
 
-	private static void estimarResultado(String jugador1, String jugador2, Double[] beta)
+	private static void estimarResultado(String jugador1, String jugador2, String superficie, Double[] beta)
 			throws JsonParseException, JsonMappingException, IOException {
 
-		Double[] x = new Double[4];
+		Double[] x = new Double[size];
 		double hipotesis = 0.0;
 
 		Jugador jug1 = leerJSONJugador(jugador1);
 		Jugador jug2 = leerJSONJugador(jugador2);
 
-		Double wsp1 = jug1.getGanarPuntoSacando();
-		Double wsp2 = jug2.getGanarPuntoSacando();
-		Double wrp1 = jug1.getGanarPuntoRestando();
-		Double wrp2 = jug2.getGanarPuntoRestando();
-
-		Double direct1 = wsp1 - wrp2;
-		Double direct2 = wsp2 - wrp1;
-
-		Double serveadv = direct1 - direct2;
-
-		Double complet1 = wsp1 * wrp1;
-		Double complet2 = wsp2 * wrp2;
-
-		Double complet = complet1 - complet2;
-
-		x[0] = serveadv;
-		x[1] = complet;
-		x[2] = calcularDirect(jug1, jug2);
-		x[3] = calcularAces(jug1, jug2);
+		x = calcularCaracteristicas(jug1, jug2, superficie);
 
 		for (int j = 0; j < x.length; j++) {
 			hipotesis += x[j] * beta[j];
@@ -164,31 +137,13 @@ public class Main {
 
 	} // Cierre estimarResultado
 
-	private static double estimarResultado(Jugador jugador1, Jugador jugador2, Double[] beta)
+	private static double estimarResultado(Jugador jug1, Jugador jug2, String superficie, Double[] beta)
 			throws JsonParseException, JsonMappingException, IOException {
 
-		Double[] x = new Double[4];
+		Double[] x = new Double[size];
 		double hipotesis = 0.0;
 
-		Double wsp1 = jugador1.getGanarPuntoSacando();
-		Double wsp2 = jugador2.getGanarPuntoSacando();
-		Double wrp1 = jugador1.getGanarPuntoRestando();
-		Double wrp2 = jugador2.getGanarPuntoRestando();
-
-		Double direct1 = wsp1 - wrp2;
-		Double direct2 = wsp2 - wrp1;
-
-		Double serveadv = direct1 - direct2;
-
-		Double complet1 = wsp1 * wrp1;
-		Double complet2 = wsp2 * wrp2;
-
-		Double complet = complet1 - complet2;
-
-		x[0] = serveadv;
-		x[1] = complet;
-		x[2] = calcularDirect(jugador1, jugador2);
-		x[3] = calcularAces(jugador1, jugador2);
+		x = calcularCaracteristicas(jug1, jug2, superficie);
 
 		for (int j = 0; j < x.length; j++) {
 			hipotesis += x[j] * beta[j];
@@ -197,6 +152,14 @@ public class Main {
 		return sigmoid(hipotesis);
 	} // Cierre estimarResultado
 
+	/**
+	 *  Devuelve el objeto tipo Jugador que está almacenado en formato JSON en el fichero correspondiente.
+	 * @param jugador
+	 * @return
+	 * @throws JsonParseException
+	 * @throws JsonMappingException
+	 * @throws IOException
+	 */
 	private static Jugador leerJSONJugador(String jugador)
 			throws JsonParseException, JsonMappingException, IOException {
 		String path = "/home/manu/Uni/PSI/json/jugadores/2015/";
@@ -209,24 +172,27 @@ public class Main {
 	private static Double[] derivadaFuncionCoste(ArrayList<Double[]> listX, ArrayList<Double> listHipotesis,
 			Double[] theta) {
 
-		double alpha = 0.05, aux0 = 0.0, aux1 = 0.0, aux2 = 0.0, aux3 = 0.0;
+		double alpha = 0.05, aux0 = 0.0, aux1 = 0.0, aux2 = 0.0, aux3 = 0.0, aux4 = 0.0;
 
 		for (int i = 0; i < listX.size(); i++) {
 			aux0 += (listHipotesis.get(i) - 1) * listX.get(i)[0];
 			aux1 += (listHipotesis.get(i) - 1) * listX.get(i)[1];
 			aux2 += (listHipotesis.get(i) - 1) * listX.get(i)[2];
 			aux3 += (listHipotesis.get(i) - 1) * listX.get(i)[3];
+			aux4 += (listHipotesis.get(i) - 1) * listX.get(i)[4];
 		}
 
 		aux0 = aux0 / listX.size();
 		aux1 = aux1 / listX.size();
 		aux2 = aux2 / listX.size();
 		aux3 = aux3 / listX.size();
+		aux4 = aux4 / listX.size();
 
 		theta[0] -= alpha * aux0;
 		theta[1] -= alpha * aux1;
 		theta[2] -= alpha * aux2;
 		theta[3] -= alpha * aux3;
+		theta[4] -= alpha * aux4;
 
 		return theta;
 	}
@@ -285,7 +251,7 @@ public class Main {
 
 	private static double testeoSistema(Double[] beta) throws JsonParseException, JsonMappingException, IOException {
 		String path = "/home/manu/Uni/PSI/json/jugadores/2015/";
-		Jugador contrincante = null;
+		Jugador jug2 = null;
 		Integer aciertos = 0, fallos = 0;
 		double rendimiento = 0.0, desviacion = 0.0;
 
@@ -297,16 +263,16 @@ public class Main {
 
 		ArrayList<Jugador> data = getJugadoresArray("2015");
 
-		for (Jugador jug : data) {
-			partidos = jug.getPartidos();
+		for (Jugador jug1 : data) {
+			partidos = jug1.getPartidos();
 
 			for (Partido part : partidos) {
 
 				// Obtenemos al contrincante
-				contrincante = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"),
+				jug2 = mapper.readValue(new File(path + toNombreFichero(part.getContrincante()) + ".json"),
 						Jugador.class);
 
-				hipotesis = estimarResultado(jug, contrincante, beta);
+				hipotesis = estimarResultado(jug1, jug2, part.getSuperficie(), beta);
 
 				if (part.getGanador()) {
 					if (hipotesis > 0.5) {
@@ -335,14 +301,76 @@ public class Main {
 		return rendimiento;
 
 	} // Cierre testeoSistema
-
+	
+	/**
+	 *  Calcula el valor de la función sigmoid para el parámetro dado
+	 * @param hipotesis
+	 * @return
+	 */
 	private static double sigmoid(double hipotesis) {
 		return 1.0 / (1 + Math.pow(Math.E, (-hipotesis)));
 	}
 
+	/**
+	 *  Devuelve el nombre del tenista en formato nombre_apellido (en minúsculas)
+	 * @param nombre Nombre del tenista
+	 * @return Nombre del tenista en el formato descrito
+	 */
 	private static String toNombreFichero(String nombre) {
 		return nombre.toLowerCase().replace(" ", "_");
 	}
+	
+	private static Double[] calcularCaracteristicas(Jugador jug1, Jugador jug2, String superficie) throws JsonParseException, JsonMappingException, IOException {
+		
+		Double[] x = new Double[size];
+		
+		Double wsp1 = jug1.getGanarPuntoSacando();
+		Double wsp2 = jug2.getGanarPuntoSacando();
+		Double wrp1 = jug1.getGanarPuntoRestando();
+		Double wrp2 = jug2.getGanarPuntoRestando();
+
+		Double direct1 = wsp1 - wrp2;
+		Double direct2 = wsp2 - wrp1;
+
+		Double serveadv = direct1 - direct2;
+
+		Double complet1 = wsp1 * wrp1;
+		Double complet2 = wsp2 * wrp2;
+
+		Double complet = complet1 - complet2;
+		Double probSuperficie = 0.0;
+		
+		switch(superficie) {
+		
+		case("Clay"): {
+			probSuperficie = jug1.getProbClay() - jug2.getProbClay();
+			break;
+		}
+		
+		case("Grass"): {
+			probSuperficie = jug1.getProbGrass() - jug2.getProbGrass();
+			break;
+			
+		}
+		
+		case("Hard"): {
+			probSuperficie = jug1.getProbHard() - jug2.getProbHard();
+			break;
+		}
+		default: {
+			probSuperficie = jug1.getProbOther() - jug2.getProbOther();
+			
+		}
+		}
+
+		x[0] = serveadv;
+		x[1] = complet;
+		x[2] = calcularDirect(jug1, jug2);
+		x[3] = calcularAces(jug1, jug2);
+		x[4] = probSuperficie;
+		
+		return x;
+	} // Cierre calcularCaracteristicas
 
 	private static double calcularDirect(Jugador jug1, Jugador jug2) throws JsonParseException, JsonMappingException, IOException {
 		String nombre2 = jug2.getNombre();

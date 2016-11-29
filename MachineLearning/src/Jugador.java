@@ -21,8 +21,46 @@ public class Jugador {
 	private double ganarPuntoSacando = 0.0;
 	private double ganarPuntoRestando = 0.0;
 	private double probAce = 0.0;
+	private double probClay = 0.0;
+	private double probGrass = 0.0;
+	private double probHard = 0.0;
+	private double probOther = 0.0;
 	
 	
+	
+	
+	public double getProbClay() {
+		return probClay;
+	}
+
+	public void setProbClay(double probClay) {
+		this.probClay = probClay;
+	}
+
+	public double getProbGrass() {
+		return probGrass;
+	}
+
+	public void setProbGrass(double probGrass) {
+		this.probGrass = probGrass;
+	}
+
+	public double getProbHard() {
+		return probHard;
+	}
+
+	public void setProbHard(double probHard) {
+		this.probHard = probHard;
+	}
+
+	public double getProbOther() {
+		return probOther;
+	}
+
+	public void setProbOther(double probOther) {
+		this.probOther = probOther;
+	}
+
 	public double getProbAce() {
 		return probAce;
 	}
