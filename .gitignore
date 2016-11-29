@@ -40,5 +40,5 @@ captures/
 *.jks
 
 #Propias
-.metadata/
-
+.*
+!/.gitignore
