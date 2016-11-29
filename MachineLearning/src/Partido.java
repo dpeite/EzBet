@@ -17,24 +17,21 @@ public class Partido {
 	private Boolean ganador = true;
 	
 	private Integer winnerAces = 0;
-	private Integer loserAces = 0;
-	
-	private Integer winnerServingGames = 0;
-	private Integer loserServingGames = 0;
-	private Integer winnerServingPoints = 0;
-	private Integer loserServingPoints = 0;
-	private Integer winnerDobleFalta = 0;
-	private Integer loserDobleFalta = 0;
-	
 	private Integer winnerPrimerSaqueDentro = 0;
 	private Integer winnerPrimerSaqueGanado = 0;
 	private Integer winnerSegundoSaqueGanado = 0;
-	
+	private Integer winnerDobleFalta = 0;
+	private Integer winnerServingPoints = 0;
+	private Integer winnerServingGames = 0;
+		
+	private Integer loserAces = 0;
 	private Integer loserPrimerSaqueDentro = 0;
 	private Integer loserPrimerSaqueGanado = 0;
 	private Integer loserSegundoSaqueGanado = 0;
-	
-	
+	private Integer loserDobleFalta = 0;
+	private Integer loserServingPoints = 0;
+	private Integer loserServingGames = 0;
+
 	
 	/**
 	 * @return the winnerDobleFalta

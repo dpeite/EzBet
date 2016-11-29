@@ -20,7 +20,17 @@ public class Jugador {
 	private double segundoSaque = 0.0;
 	private double ganarPuntoSacando = 0.0;
 	private double ganarPuntoRestando = 0.0;
+	private double probAce = 0.0;
 	
+	
+	public double getProbAce() {
+		return probAce;
+	}
+
+	public void setProbAce(double probAce) {
+		this.probAce = probAce;
+	}
+
 	private ArrayList<Partido> partidos = new ArrayList<Partido>();
 	
 	
