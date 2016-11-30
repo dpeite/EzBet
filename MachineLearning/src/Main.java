@@ -34,9 +34,7 @@ public class Main {
 
 		for (int i = 0; i < size; i++) {
 			beta[i] = 1.0;	
-		} 
-		
-		System.out.println(beta.length);
+		}
 		
 		for (int i = 2004; i < 2015; i++) {
 			System.out.println(i);
@@ -61,8 +59,11 @@ public class Main {
 			
 			System.out.println("Superficie: ");
 			String superficie = bf.readLine();
-
-			estimarResultado(jug1, jug2, superficie,beta);
+			try {
+				estimarResultado(jug1, jug2, superficie,beta);
+			} catch (Exception e) {
+				System.out.println("Ups");
+			}
 		}
 
 	}
@@ -323,14 +324,63 @@ public class Main {
 	private static Double[] calcularCaracteristicas(Jugador jug1, Jugador jug2, String superficie) throws JsonParseException, JsonMappingException, IOException {
 		
 		Double[] x = new Double[size];
-		
-		Double wsp1 = jug1.getGanarPuntoSacando();
-		Double wsp2 = jug2.getGanarPuntoSacando();
-		Double wrp1 = jug1.getGanarPuntoRestando();
-		Double wrp2 = jug2.getGanarPuntoRestando();
+		Superficie superf1 = null;
+		Superficie superf2 = null;
 
-		Double direct1 = wsp1 - wrp2;
-		Double direct2 = wsp2 - wrp1;
+		Double probSuperficie = 0.0;
+
+		switch(superficie) {
+		
+		case("Clay"): {
+			superf1 = jug1.getClay();
+			superf2 = jug2.getClay();
+			
+			probSuperficie = superf1.getProbVictoria() - superf2.getProbVictoria();
+			break;
+		}
+		
+		case("Grass"): {
+			superf1 = jug1.getGrass();
+			superf2 = jug2.getGrass();
+			
+			probSuperficie = superf1.getProbVictoria() - superf2.getProbVictoria();
+			break;
+			
+		}
+		
+		case("Hard"): {
+			superf1 = jug1.getHard();
+			superf2 = jug2.getHard();
+			
+			probSuperficie = superf1.getProbVictoria() - superf2.getProbVictoria();
+			break;
+		}
+		default: {
+			superf1 = jug1.getOther();
+			superf2 = jug2.getOther();
+			
+			probSuperficie = superf1.getProbVictoria() - superf2.getProbVictoria();
+			
+		}
+		} // Cierre switch
+		
+		Double wsp1 = superf1.getProbGanarPuntoSacando();
+		Double wsp2 = superf2.getProbGanarPuntoSacando();
+		Double wrp1 = superf1.getProbGanarPuntoRestando();
+		Double wrp2 = superf2.getProbGanarPuntoRestando();
+		
+		Double direct1 = 0.0;
+		Double direct2 = 0.0;
+		
+		if (wsp1 == 0.0 || wsp2 == 0.0 || wrp1 == 0.0 || wrp2 == 0.0) {
+			wsp1 = jug1.getGanarPuntoRestando();
+			wsp2 = jug2.getGanarPuntoSacando();
+			wrp1 = jug1.getGanarPuntoRestando();
+			wrp2 = jug2.getGanarPuntoRestando();
+		} 
+		
+		direct1 = wsp1 - wrp2;
+		direct2 = wsp2 - wrp1;
 
 		Double serveadv = direct1 - direct2;
 
@@ -338,41 +388,20 @@ public class Main {
 		Double complet2 = wsp2 * wrp2;
 
 		Double complet = complet1 - complet2;
-		Double probSuperficie = 0.0;
-		
-		switch(superficie) {
-		
-		case("Clay"): {
-			probSuperficie = jug1.getProbClay() - jug2.getProbClay();
-			break;
-		}
-		
-		case("Grass"): {
-			probSuperficie = jug1.getProbGrass() - jug2.getProbGrass();
-			break;
-			
-		}
-		
-		case("Hard"): {
-			probSuperficie = jug1.getProbHard() - jug2.getProbHard();
-			break;
-		}
-		default: {
-			probSuperficie = jug1.getProbOther() - jug2.getProbOther();
-			
-		}
-		}
 
+		//TODO Revisar resultados con distintas combinaciones
 		x[0] = serveadv;
-		x[1] = complet;
-		x[2] = calcularDirect(jug1, jug2);
-		x[3] = calcularAces(jug1, jug2);
+		//x[1] = complet;
+		x[1] = 0.0;
+		x[2] = calcularDirect(jug1, jug2, superficie);
+		//x[3] = calcularAces(superf1, superf2);
+		x[3] = 0.0;
 		x[4] = probSuperficie;
 		
 		return x;
 	} // Cierre calcularCaracteristicas
 
-	private static double calcularDirect(Jugador jug1, Jugador jug2) throws JsonParseException, JsonMappingException, IOException {
+	private static double calcularDirect(Jugador jug1, Jugador jug2, String superficie) throws JsonParseException, JsonMappingException, IOException {
 		String nombre2 = jug2.getNombre();
 		Integer victorias1 = 0, victorias2 = 0, totalPartidos = 0;
 		double por1 = 0.0, por2 = 0.0;
@@ -385,9 +414,16 @@ public class Main {
 				for (Partido part : jugador1.getPartidos()) {
 					if (part.getContrincante().equals(nombre2)) {
 						if (part.getGanador()) {
-							victorias1++;
+							//TODO Revisar, mejora el % global pero resultados raros (Federer con más prob de ganar que Nadal en ierra)
+							if(part.getSuperficie().equals(superficie)) {
+								victorias1 += 1;
+							}
+							//victorias1++;
 						} else {
-							victorias2++;
+							if(part.getSuperficie().equals(superficie)) {
+								victorias2++;
+							}
+							//victorias2++;
 						}
 					}
 				} // Cierre for Partido
@@ -436,8 +472,8 @@ public class Main {
 
 	} // Cierre calcularDirect
 	
-	private static double calcularAces(Jugador jug1, Jugador jug2) {
-		return jug1.getProbAce() - jug2.getProbAce();
+	private static double calcularAces(Superficie sup1, Superficie sup2) {
+		return sup1.getProbAce() - sup2.getProbAce();
 	}
 
 } // Cierre class

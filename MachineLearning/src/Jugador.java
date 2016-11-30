@@ -1,8 +1,5 @@
-import java.util.ArrayList;
 
-/**
- * 
- */
+import java.util.ArrayList;
 
 /**
  * @author manu
@@ -21,65 +18,99 @@ public class Jugador {
 	private double ganarPuntoSacando = 0.0;
 	private double ganarPuntoRestando = 0.0;
 	private double probAce = 0.0;
-	private double probClay = 0.0;
-	private double probGrass = 0.0;
-	private double probHard = 0.0;
-	private double probOther = 0.0;
+	private Superficie clay = new Superficie("Clay");
+	private Superficie grass = new Superficie("Grass");
+	private Superficie hard = new Superficie("Hard");
+	private Superficie other = new Superficie("Other");
+	private ArrayList<Partido> partidos = new ArrayList<Partido>();	
+
 	
-	
-	
-	
-	public double getProbClay() {
-		return probClay;
+	/**
+	 * @return the grass
+	 */
+	public Superficie getGrass() {
+		return grass;
 	}
 
-	public void setProbClay(double probClay) {
-		this.probClay = probClay;
+	/**
+	 * @param grass the grass to set
+	 */
+	public void setGrass(Superficie grass) {
+		this.grass = grass;
 	}
 
-	public double getProbGrass() {
-		return probGrass;
+	/**
+	 * @return the hard
+	 */
+	public Superficie getHard() {
+		return hard;
 	}
 
-	public void setProbGrass(double probGrass) {
-		this.probGrass = probGrass;
+	/**
+	 * @param hard the hard to set
+	 */
+	public void setHard(Superficie hard) {
+		this.hard = hard;
 	}
 
-	public double getProbHard() {
-		return probHard;
+	/**
+	 * @return the other
+	 */
+	public Superficie getOther() {
+		return other;
 	}
 
-	public void setProbHard(double probHard) {
-		this.probHard = probHard;
+	/**
+	 * @param other the other to set
+	 */
+	public void setOther(Superficie other) {
+		this.other = other;
 	}
 
-	public double getProbOther() {
-		return probOther;
+	/**
+	 * @return the clay
+	 */
+	public Superficie getClay() {
+		return clay;
 	}
 
-	public void setProbOther(double probOther) {
-		this.probOther = probOther;
+	/**
+	 * @param clay the clay to set
+	 */
+	public void setClay(Superficie clay) {
+		this.clay = clay;
 	}
 
+	/**
+	 * @return the probAce
+	 */
 	public double getProbAce() {
 		return probAce;
 	}
 
+	/**
+	 * @param probAce the probAce to set
+	 */
 	public void setProbAce(double probAce) {
 		this.probAce = probAce;
 	}
 
-	private ArrayList<Partido> partidos = new ArrayList<Partido>();
-	
-	
+	/**
+	 * @return the ganarPuntoRestando
+	 */
 	public double getGanarPuntoRestando() {
 		return ganarPuntoRestando;
 	}
 
+	/**
+	 * @param ganarPuntoRestando the ganarPuntoRestando to set
+	 */
 	public void setGanarPuntoRestando(double ganarPuntoRestando) {
 		this.ganarPuntoRestando = ganarPuntoRestando;
 	}
 
+
+	
 	/**
 	 * @return the ganarSacando
 	 */
@@ -226,14 +257,17 @@ public class Jugador {
 		this.partidos.add(partido);
 	}
 	
-	public ArrayList<String> obtenerContrincantes() {	
+	public ArrayList<String> obtenerContrincantes() {
+		
 		ArrayList<String> contrincantes = new ArrayList<String>();
 		
 		for ( Partido partido: partidos) {
 			contrincantes.add(partido.getContrincante());
+			System.out.println(partido.getContrincante());	
 		}
 
 		return contrincantes;
+		
 	}
 
 } // Cierre class
