@@ -1,11 +1,6 @@
+package resources;
 
 import java.util.ArrayList;
-
-import resources.Partido;
-/**
- * 
- */
-import resources.Superficie;
 
 /**
  * @author manu
@@ -31,7 +26,7 @@ public class Jugador {
 	private ArrayList<Partido> partidos = new ArrayList<Partido>();	
 
 	
-	
+	//----------- Setters de la probabilidad de ganar
 	public void setProbGanarClay(Double prob) {
 		this.clay.setProbVictoria(prob);
 	}
@@ -48,6 +43,107 @@ public class Jugador {
 		this.other.setProbVictoria(prob);
 	}
 	
+	//----------- Setters de la probabilidad de acertar el primer saque
+	public void setProbPrimerSaqueClay(Double prob) {
+		this.clay.setProbPrimerSaque(prob);
+	}
+	
+	public void setProbPrimerSaqueGrass(Double prob) {
+		this.grass.setProbPrimerSaque(prob);
+	}
+	
+	public void setProbPrimerSaqueHard(Double prob) {
+		this.hard.setProbPrimerSaque(prob);
+	}
+	
+	public void setProbPrimerSaqueOther(Double prob) {
+		this.other.setProbPrimerSaque(prob);
+	}
+
+	//----------- Setters de la probabilidad de acertar el segundo saque
+	public void setProbSegundoSaqueClay(Double prob) {
+		this.clay.setProbSegundoSaque(prob);
+	}
+	
+	public void setProbSegundoSaqueGrass(Double prob) {
+		this.grass.setProbSegundoSaque(prob);
+	}
+	
+	public void setProbSegundoSaqueHard(Double prob) {
+		this.hard.setProbSegundoSaque(prob);
+	}
+	
+	public void setProbSegundoSaqueOther(Double prob) {
+		this.other.setProbSegundoSaque(prob);
+	}
+	
+	//----------- Setters de la probabilidad de ganar primer saque
+	public void setProbGanarPrimerSaqueClay(Double prob) {
+		this.clay.setProbGanarPrimerSaque(prob);
+	}
+	
+	public void setProbGanarPrimerSaqueGrass(Double prob) {
+		this.grass.setProbGanarPrimerSaque(prob);
+	}
+	
+	public void setProbGanarPrimerSaqueHard(Double prob) {
+		this.hard.setProbGanarPrimerSaque(prob);
+	}
+	
+	public void setProbGanarPrimerSaqueOther(Double prob) {
+		this.other.setProbGanarPrimerSaque(prob);
+	}
+	
+	//----------- Setters de la probabilidad de ganar segundo saque
+	public void setProbGanarSegundoSaqueClay(Double prob) {
+		this.clay.setProbGanarSegundoSaque(prob);
+	}
+	
+	public void setProbGanarSegundoSaqueGrass(Double prob) {
+		this.grass.setProbGanarSegundoSaque(prob);
+	}
+	
+	public void setProbGanarSegundoSaqueHard(Double prob) {
+		this.hard.setProbGanarSegundoSaque(prob);
+	}
+	
+	public void setProbGanarSegundoSaqueOther(Double prob) {
+		this.other.setProbGanarSegundoSaque(prob);
+	}
+	
+	//----------- Setters de la probabilidad de ganar punto sacando
+	public void setProbGanarPuntoSacandoClay(Double prob) {
+		this.clay.setProbGanarPuntoSacando(prob);
+	}
+	
+	public void setProbGanarPuntoSacandoGrass(Double prob) {
+		this.grass.setProbGanarPuntoSacando(prob);
+	}
+	
+	public void setProbGanarPuntoSacandoHard(Double prob) {
+		this.hard.setProbGanarPuntoSacando(prob);
+	}
+	
+	public void setProbGanarPuntoSacandoOther(Double prob) {
+		this.other.setProbGanarPuntoSacando(prob);
+	}
+	
+	//----------- Setters de la probabilidad de ganar punto restando
+	public void setProbGanarPuntoRestandoClay(Double prob) {
+		this.clay.setProbGanarPuntoRestando(prob);
+	}
+	
+	public void setProbGanarPuntoRestandoGrass(Double prob) {
+		this.grass.setProbGanarPuntoRestando(prob);
+	}
+	
+	public void setProbGanarPuntoRestandoHard(Double prob) {
+		this.hard.setProbGanarPuntoRestando(prob);
+	}
+	
+	public void setProbGanarPuntoRestandoOther(Double prob) {
+		this.other.setProbGanarPuntoRestando(prob);
+	}
 	
 	/**
 	 * @return the grass

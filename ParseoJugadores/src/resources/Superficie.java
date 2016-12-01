@@ -23,7 +23,6 @@ public class Superficie {
 		
 	}
 	
-	
 	public Superficie (String nombre) {
 		this.setNombre(nombre);
 	}

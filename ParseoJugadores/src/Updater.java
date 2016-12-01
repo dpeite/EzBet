@@ -7,44 +7,53 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import resources.Jugador;
 import resources.Partido;
-import resources.Superficie;
 
 /**
  * 
  */
 
 /**
- * @author manu
+ *
  *
  */
 public class Updater {
 
-	String path = null;
+	private String path = null;
+	private String ano = "";
 	ObjectMapper mapper = null;
-	String ano = "";
+	
 
 	public Updater(String ano) {
 		this.mapper = new ObjectMapper();
-		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		this.ano = ano;
-		path = "/home/manu/Uni/PSI/json/jugadores/" + ano + "/";
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		path = "/home/manu/Uni/PSI/json/jugadores/" + this.ano + "/";
+	}
+	
+	public void update() {
+		
+		try {
+			this.calcularProbPrimerSaque();
+			this.calcularProbSegundoSaque();
+			this.calcularProbGanarPrimerSaque();
+			this.calcularProbGanarSegundoSaque();
+			this.calcularProbGanarSacando();
+			this.calcularProbGanarRestando();
+			this.calcularProbAce();
+			this.calcularProbGanarSuperficie();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void calcularProbPrimerSaque() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbPrimerSaque() throws JsonParseException, JsonMappingException, IOException {
 		
-		double primerSaque = 0.0;
-		double primerSaqueClay = 0.0, primerSaqueGrass = 0.0, primerSaqueHard = 0.0, primerSaqueOther = 0.0;
+		double primerSaque = 0.0, primerSaqueClay = 0.0, primerSaqueGrass = 0.0, primerSaqueHard = 0.0, primerSaqueOther = 0.0;
 		int aux = 0;
-		Superficie clay = null;
-		Superficie grass = null;
-		Superficie hard = null;
-		Superficie other = null;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
@@ -114,30 +123,14 @@ public class Updater {
 
 				if (aux == 0) {
 					aux++;
-				}
-
-				primerSaque = primerSaque / aux;
-				primerSaqueClay = primerSaqueClay / aux;
-				primerSaqueGrass = primerSaqueGrass / aux;
-				primerSaqueHard = primerSaqueHard / aux;
-				primerSaqueOther = primerSaqueOther / aux;
+				}				
 				
+				jugadorFichero.setPrimerSaque(primerSaque / aux);
+				jugadorFichero.setProbPrimerSaqueClay(primerSaqueClay / aux);
+				jugadorFichero.setProbPrimerSaqueGrass(primerSaqueGrass / aux);
+				jugadorFichero.setProbPrimerSaqueHard(primerSaqueHard / aux);
+				jugadorFichero.setProbPrimerSaqueOther(primerSaqueOther / aux);
 				
-				jugadorFichero.setPrimerSaque(primerSaque);
-				clay = jugadorFichero.getClay();
-				grass = jugadorFichero.getGrass();
-				hard = jugadorFichero.getHard();
-				other = jugadorFichero.getOther();
-				
-				clay.setProbPrimerSaque(primerSaqueClay);
-				grass.setProbPrimerSaque(primerSaqueGrass);
-				hard.setProbPrimerSaque(primerSaqueHard);
-				other.setProbPrimerSaque(primerSaqueOther);
-				
-				jugadorFichero.setClay(clay);
-				jugadorFichero.setGrass(grass);
-				jugadorFichero.setHard(hard);
-				jugadorFichero.setOther(other);
 				mapper.writeValue(file, jugadorFichero);
 				
 				primerSaque = 0.0;
@@ -150,22 +143,13 @@ public class Updater {
 
 	} // Cierre calcularProbGanarPrimerSaque
 
-	public void calcularProbSegundoSaque() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbSegundoSaque() throws JsonParseException, JsonMappingException, IOException {
 
 		double segundoSaque = 0.0;
 		double segundoSaqueClay = 0.0, segundoSaqueGrass = 0.0, segundoSaqueHard = 0.0, segundoSaqueOther = 0.0;
-		int secondin = 0;
-		int aux = 0;
-		
-		Superficie clay = null;
-		Superficie grass = null;
-		Superficie hard = null;
-		Superficie other = null;
+		int secondin = 0, aux = 0;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
@@ -240,28 +224,13 @@ public class Updater {
 				if (aux == 0) {
 					aux++;
 				}
-
-				segundoSaque = segundoSaque / aux;
-				segundoSaqueClay = segundoSaqueClay / aux;
-				segundoSaqueGrass = segundoSaqueGrass / aux;
-				segundoSaqueHard = segundoSaqueHard / aux;
-				segundoSaqueOther = segundoSaqueOther / aux;
 				
-				jugadorFichero.setSegundoSaque(segundoSaque);
-				clay = jugadorFichero.getClay();
-				grass = jugadorFichero.getGrass();
-				hard = jugadorFichero.getHard();
-				other = jugadorFichero.getOther();
+				jugadorFichero.setSegundoSaque(segundoSaque / aux);
+				jugadorFichero.setProbSegundoSaqueClay(segundoSaqueClay / aux);
+				jugadorFichero.setProbSegundoSaqueGrass(segundoSaqueGrass / aux);
+				jugadorFichero.setProbSegundoSaqueHard(segundoSaqueHard / aux);
+				jugadorFichero.setProbSegundoSaqueOther(segundoSaqueOther / aux);
 				
-				clay.setProbSegundoSaque(segundoSaqueClay);
-				grass.setProbSegundoSaque(segundoSaqueGrass);
-				hard.setProbSegundoSaque(segundoSaqueHard);
-				other.setProbSegundoSaque(segundoSaqueOther);
-				
-				jugadorFichero.setClay(clay);
-				jugadorFichero.setGrass(grass);
-				jugadorFichero.setHard(hard);
-				jugadorFichero.setOther(other);
 				mapper.writeValue(file, jugadorFichero);
 				
 				segundoSaque = 0.0;
@@ -274,21 +243,13 @@ public class Updater {
 
 	} // Cierre calcularProbSegundoSaque
 
-	public void calcularProbGanarPrimerSaque() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbGanarPrimerSaque() throws JsonParseException, JsonMappingException, IOException {
 
 		double ganarPrimerSaque = 0.0;
 		double ganarPrimerSaqueClay = 0.0, ganarPrimerSaqueGrass = 0.0, ganarPrimerSaqueHard = 0.0, ganarPrimerSaqueOther = 0.0;
 		int aux = 0;
-		
-		Superficie clay = null;
-		Superficie grass = null;
-		Superficie hard = null;
-		Superficie other = null;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
@@ -366,28 +327,13 @@ public class Updater {
 
 				if (aux == 0) {
 					aux++;
-				}
-				ganarPrimerSaque = ganarPrimerSaque / aux;
-				ganarPrimerSaqueClay = ganarPrimerSaqueClay / aux;
-				ganarPrimerSaqueGrass = ganarPrimerSaqueGrass / aux;
-				ganarPrimerSaqueHard = ganarPrimerSaqueHard / aux;
-				ganarPrimerSaqueOther = ganarPrimerSaqueOther / aux;
+				}			
 				
-				jugadorFichero.setGanar1Saque(ganarPrimerSaque);
-				clay = jugadorFichero.getClay();
-				grass = jugadorFichero.getGrass();
-				hard = jugadorFichero.getHard();
-				other = jugadorFichero.getOther();
-				
-				clay.setProbGanarPrimerSaque(ganarPrimerSaqueClay);
-				grass.setProbGanarPrimerSaque(ganarPrimerSaqueGrass);
-				hard.setProbGanarPrimerSaque(ganarPrimerSaqueHard);
-				other.setProbGanarPrimerSaque(ganarPrimerSaqueOther);
-				
-				jugadorFichero.setClay(clay);
-				jugadorFichero.setGrass(grass);
-				jugadorFichero.setHard(hard);
-				jugadorFichero.setOther(other);
+				jugadorFichero.setProbGanarPrimerSaqueClay(ganarPrimerSaqueClay / aux);
+				jugadorFichero.setProbGanarPrimerSaqueGrass(ganarPrimerSaqueGrass / aux);
+				jugadorFichero.setProbGanarPrimerSaqueHard(ganarPrimerSaqueHard / aux);
+				jugadorFichero.setProbGanarPrimerSaqueOther(ganarPrimerSaqueOther / aux);
+				jugadorFichero.setGanar1Saque(ganarPrimerSaque / aux);
 				
 				mapper.writeValue(file, jugadorFichero);
 				
@@ -401,22 +347,13 @@ public class Updater {
 
 	} // Cierre calcularProbGanarPrimerSaque
 
-	public void calcularProbGanarSegundoSaque() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbGanarSegundoSaque() throws JsonParseException, JsonMappingException, IOException {
 
+		int secondin = 0, aux = 0;
 		double ganarSegundoSaque = 0.0;
-		int secondin = 0;
 		double ganarSegundoSaqueClay = 0.0, ganarSegundoSaqueGrass = 0.0, ganarSegundoSaqueHard = 0.0, ganarSegundoSaqueOther = 0.0;
-		int aux = 0;
-		
-		Superficie clay = null;
-		Superficie grass = null;
-		Superficie hard = null;
-		Superficie other = null;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
@@ -497,28 +434,13 @@ public class Updater {
 				if (aux == 0) {
 					aux++;
 				}
-
-				ganarSegundoSaque = ganarSegundoSaque / aux;
-				ganarSegundoSaqueClay = ganarSegundoSaqueClay / aux;
-				ganarSegundoSaqueGrass = ganarSegundoSaqueGrass / aux;
-				ganarSegundoSaqueHard = ganarSegundoSaqueHard / aux;
-				ganarSegundoSaqueOther = ganarSegundoSaqueOther / aux;
 					
-				jugadorFichero.setGanar2Saque(ganarSegundoSaque);
-				clay = jugadorFichero.getClay();
-				grass = jugadorFichero.getGrass();
-				hard = jugadorFichero.getHard();
-				other = jugadorFichero.getOther();
-				
-				clay.setProbGanarSegundoSaque(ganarSegundoSaqueClay);
-				grass.setProbGanarSegundoSaque(ganarSegundoSaqueGrass);
-				hard.setProbGanarSegundoSaque(ganarSegundoSaqueHard);
-				other.setProbGanarSegundoSaque(ganarSegundoSaqueOther);
-				
-				jugadorFichero.setClay(clay);
-				jugadorFichero.setGrass(grass);
-				jugadorFichero.setHard(hard);
-				jugadorFichero.setOther(other);
+				jugadorFichero.setGanar2Saque(ganarSegundoSaque / aux);
+				jugadorFichero.setProbGanarSegundoSaqueClay(ganarSegundoSaqueClay / aux);
+				jugadorFichero.setProbGanarSegundoSaqueGrass(ganarSegundoSaqueGrass / aux);
+				jugadorFichero.setProbGanarSegundoSaqueHard(ganarSegundoSaqueHard / aux);
+				jugadorFichero.setProbGanarSegundoSaqueOther(ganarSegundoSaqueOther / aux);
+
 				mapper.writeValue(file, jugadorFichero);
 				
 				ganarSegundoSaque = 0.0;
@@ -531,85 +453,61 @@ public class Updater {
 
 	} // Cierre calcularProbGanarSegundoSaque
 
-	public void calcularProbGanarSacando() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbGanarSacando() throws JsonParseException, JsonMappingException, IOException {
 
 		double ganarPuntoSacando = 0.0;
-		Superficie clay = null;
-		Superficie grass = null;
-		Superficie hard = null;
-		Superficie other = null;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
-				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
-				clay = jugadorFichero.getClay();
-				grass = jugadorFichero.getGrass();
-				hard = jugadorFichero.getHard();
-				other = jugadorFichero.getOther(); 
+				Jugador jugador = mapper.readValue(file, Jugador.class);
 
-				ganarPuntoSacando = jugadorFichero.getGanar1Saque() * jugadorFichero.getPrimerSaque();
-				ganarPuntoSacando += jugadorFichero.getGanar2Saque() * jugadorFichero.getSegundoSaque();
-				jugadorFichero.setGanarPuntoSacando(ganarPuntoSacando);
+				ganarPuntoSacando = jugador.getGanar1Saque() * jugador.getPrimerSaque();
+				ganarPuntoSacando += jugador.getGanar2Saque() * jugador.getSegundoSaque();
+				jugador.setGanarPuntoSacando(ganarPuntoSacando);
 				
 				ganarPuntoSacando = 0.0;
-				ganarPuntoSacando = clay.getProbGanarPrimerSaque() * clay.getProbPrimerSaque();
-				ganarPuntoSacando += clay.getProbGanarSegundoSaque() * clay.getProbSegundoSaque();
-				clay.setProbGanarPuntoSacando(ganarPuntoSacando);
-				jugadorFichero.setClay(clay);
+				ganarPuntoSacando = jugador.getClay().getProbGanarPrimerSaque() * jugador.getClay().getProbPrimerSaque();
+				ganarPuntoSacando += jugador.getClay().getProbGanarSegundoSaque() * jugador.getClay().getProbSegundoSaque();
+				jugador.setProbGanarPuntoSacandoClay(ganarPuntoSacando);
 				
 				ganarPuntoSacando = 0.0;
-				ganarPuntoSacando = grass.getProbGanarPrimerSaque() * grass.getProbPrimerSaque();
-				ganarPuntoSacando += grass.getProbGanarSegundoSaque() * grass.getProbSegundoSaque();
-				grass.setProbGanarPuntoSacando(ganarPuntoSacando);
-				jugadorFichero.setGrass(grass);
+				ganarPuntoSacando = jugador.getGrass().getProbGanarPrimerSaque() * jugador.getGrass().getProbPrimerSaque();
+				ganarPuntoSacando += jugador.getGrass().getProbGanarSegundoSaque() * jugador.getGrass().getProbSegundoSaque();
+				jugador.setProbGanarPuntoSacandoGrass(ganarPuntoSacando);
 				
 				ganarPuntoSacando = 0.0;
-				ganarPuntoSacando = hard.getProbGanarPrimerSaque() * hard.getProbPrimerSaque();
-				ganarPuntoSacando += hard.getProbGanarSegundoSaque() * hard.getProbSegundoSaque();
-				hard.setProbGanarPuntoSacando(ganarPuntoSacando);
-				jugadorFichero.setHard(hard);
+				ganarPuntoSacando = jugador.getHard().getProbGanarPrimerSaque() * jugador.getHard().getProbPrimerSaque();
+				ganarPuntoSacando += jugador.getHard().getProbGanarSegundoSaque() * jugador.getHard().getProbSegundoSaque();
+				jugador.setProbGanarPuntoSacandoHard(ganarPuntoSacando);
 				
 				ganarPuntoSacando = 0.0;
-				ganarPuntoSacando = other.getProbGanarPrimerSaque() * other.getProbPrimerSaque();
-				ganarPuntoSacando += other.getProbGanarSegundoSaque() * other.getProbSegundoSaque();
-				other.setProbGanarPuntoSacando(ganarPuntoSacando);
-				jugadorFichero.setOther(other);
+				ganarPuntoSacando = jugador.getOther().getProbGanarPrimerSaque() * jugador.getOther().getProbPrimerSaque();
+				ganarPuntoSacando += jugador.getOther().getProbGanarSegundoSaque() * jugador.getOther().getProbSegundoSaque();
+				jugador.setProbGanarPuntoSacandoOther(ganarPuntoSacando);
 
 				
-				mapper.writeValue(file, jugadorFichero);
+				mapper.writeValue(file, jugador);
 			}
 		}
 
 	} // Cierre calcularProbGanarSacando
 
-	public void calcularProbGanarRestando() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbGanarRestando() throws JsonParseException, JsonMappingException, IOException {
 
 		Integer tamPartidos = 0;
 		double ganarPuntoRestando = 0.0;
 		double ganarPuntoSacandoRivalClay = 0.0, ganarPuntoSacandoRivalGrass = 0.0, ganarPuntoSacandoRivalHard = 0.0, ganarPuntoSacandoRivalOther = 0.0;
 		double ganarPuntoRestandoClay = 0.0, ganarPuntoRestandoGrass = 0.0, ganarPuntoRestandoHard = 0.0, ganarPuntoRestandoOther = 0.0;
 		double ganarPuntoSacandoRival = 0.0;
-		Superficie clay = null;
-		Superficie grass = null;
-		Superficie hard = null;
-		Superficie other = null;
 
-		double ganarPrimerSaque = 0.0;
-		double primerSaque = 0.0;
-		double ganarSegundoSaque = 0.0;
-		double segundoSaque = 0.0;
+		double ganarPrimerSaque = 0.0, primerSaque = 0.0;
+		double ganarSegundoSaque = 0.0, segundoSaque = 0.0;
 		double secondin = 0.0;
 
 		ArrayList<Partido> partidos = null;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
@@ -701,28 +599,12 @@ public class Updater {
 				if (tamPartidos == 0) {
 					tamPartidos++;
 				}
-
-				ganarPuntoRestando /= tamPartidos;
-				ganarPuntoRestandoClay /= tamPartidos;
-				ganarPuntoRestandoGrass /= tamPartidos;
-				ganarPuntoRestandoHard /= tamPartidos;
-				ganarPuntoRestandoOther /= tamPartidos;
 				
-				jugadorFichero.setGanarPuntoRestando(ganarPuntoRestando);
-				clay = jugadorFichero.getClay();
-				grass = jugadorFichero.getGrass();
-				hard = jugadorFichero.getHard();
-				other = jugadorFichero.getOther();
-				
-				clay.setProbGanarPuntoRestando(ganarPuntoRestandoClay);
-				grass.setProbGanarPuntoRestando(ganarPuntoRestandoGrass);
-				hard.setProbGanarPuntoRestando(ganarPuntoRestandoHard);
-				other.setProbGanarPuntoRestando(ganarPuntoRestandoOther);
-
-				jugadorFichero.setClay(clay);
-				jugadorFichero.setGrass(grass);
-				jugadorFichero.setHard(hard);
-				jugadorFichero.setOther(other);
+				jugadorFichero.setGanarPuntoRestando(ganarPuntoRestando / tamPartidos);
+				jugadorFichero.setProbGanarPuntoRestandoClay(ganarPuntoRestandoClay / tamPartidos);
+				jugadorFichero.setProbGanarPuntoRestandoGrass(ganarPuntoRestandoGrass / tamPartidos);
+				jugadorFichero.setProbGanarPuntoRestandoHard(ganarPuntoRestandoHard / tamPartidos);
+				jugadorFichero.setProbGanarPuntoRestandoOther(ganarPuntoRestandoOther / tamPartidos);
 				
 				mapper.writeValue(file, jugadorFichero);
 
@@ -736,17 +618,13 @@ public class Updater {
 
 	}
 
-	public void calcularProbAce() throws JsonParseException, JsonMappingException, IOException {
+	private void calcularProbAce() throws JsonParseException, JsonMappingException, IOException {
 
 		ArrayList<Partido> partidos = null;
-		Integer numAce = 0;
-		Integer numServingPoints = 0;
+		Integer numAce = 0, numServingPoints = 0;
 		double probAce = 0.0;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugadorFichero = mapper.readValue(file, Jugador.class);
@@ -789,10 +667,7 @@ public class Updater {
 		Integer numLosClay = 0, numLosGrass = 0, numLosHard = 0, numLosOther = 0;
 		double probClay = 0.0, probGrass = 0.0, probHard = 0.0, probOther = 0.0;
 
-		File folder = new File(path);
-		File[] listOfFiles = folder.listFiles();
-
-		for (File file : listOfFiles) {
+		for (File file : (new File(path)).listFiles()) {
 			if (file.isFile()) {
 
 				Jugador jugador = mapper.readValue(file, Jugador.class);
