@@ -36,6 +36,10 @@ public class Main {
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 	} // Cierre Main
 
+	public Main(Context context){
+		this.context = context;
+	}
+
     public void obtenerBeta() {
 
         Double[] beta = new Double[size];
@@ -89,7 +93,7 @@ public class Main {
 			for (Partido part : partidos) {
 				jug2 = this.leerJSONJugador(year, part.getContrincante());
 
-				x = calcularCaracteristicas(jug1, jug2, part.getSuperficie(), year);
+				x = calcularCaracteristicas(jug1, jug2, part.getSuperficie(), year, false);
 
 				for (int j = 0; j < x.length; j++) {
 					hipotesis += x[j] * beta[j];
@@ -117,7 +121,7 @@ public class Main {
 		Double[] x;
 		double hipotesis = 0.0;
 
-		x = this.calcularCaracteristicas(jug1, jug2, superficie, year);
+		x = this.calcularCaracteristicas(jug1, jug2, superficie, year, false);
 
 		for (int j = 0; j < x.length; j++) {
 			hipotesis += x[j] * beta[j];
@@ -183,7 +187,7 @@ public class Main {
 		return nombre.toLowerCase().replace(" ", "_");
 	}
 
-	private Double[] calcularCaracteristicas(Jugador jug1, Jugador jug2, String superficie, String year) throws IOException {
+	private Double[] calcularCaracteristicas(Jugador jug1, Jugador jug2, String superficie, String year, Boolean wr) throws IOException {
 
 		Double[] x = new Double[size];
 		Superficie superf1, superf2;
@@ -222,11 +226,12 @@ public class Main {
 		Double wrp1 = superf1.getProbGanarPuntoRestando();
 		Double wrp2 = superf2.getProbGanarPuntoRestando();
 
-        ((TextView) view.findViewById(R.id.textWspJug1)).setText(Double.toString(Math.round(wsp1 * 10000d) / 10000d));
-        ((TextView) view.findViewById(R.id.textWspJug2)).setText(Double.toString(Math.round(wsp2 * 10000d) / 10000d));
-        ((TextView) view.findViewById(R.id.textWrpJug1)).setText(Double.toString(Math.round(wrp1 * 10000d) / 10000d));
-        ((TextView) view.findViewById(R.id.textWrpJug2)).setText(Double.toString(Math.round(wrp2 * 10000d) / 10000d));
-
+		if (wr == true) {
+			((TextView) view.findViewById(R.id.textWspJug1)).setText(Double.toString(Math.round(wsp1 * 10000d) / 10000d));
+			((TextView) view.findViewById(R.id.textWspJug2)).setText(Double.toString(Math.round(wsp2 * 10000d) / 10000d));
+			((TextView) view.findViewById(R.id.textWrpJug1)).setText(Double.toString(Math.round(wrp1 * 10000d) / 10000d));
+			((TextView) view.findViewById(R.id.textWrpJug2)).setText(Double.toString(Math.round(wrp2 * 10000d) / 10000d));
+		}
 		Double direct1, direct2;
 
 		if (wsp1 == 0.0 || wsp2 == 0.0 || wrp1 == 0.0 || wrp2 == 0.0) {
@@ -240,22 +245,22 @@ public class Main {
 		direct2 = wsp2 - wrp1;
 
 		Double serveadv = direct1 - direct2;
-
-        ((TextView) view.findViewById(R.id.textServeAdvJug1)).setText(Double.toString(Math.round(direct1 * 10000d) / 10000d));
-        ((TextView) view.findViewById(R.id.textServeAdvJug2)).setText(Double.toString(Math.round(direct2 * 10000d) / 10000d));
-
+		if (wr == true) {
+			((TextView) view.findViewById(R.id.textServeAdvJug1)).setText(Double.toString(Math.round(direct1 * 10000d) / 10000d));
+			((TextView) view.findViewById(R.id.textServeAdvJug2)).setText(Double.toString(Math.round(direct2 * 10000d) / 10000d));
+		}
 		Double complet1 = wsp1 * wrp1;
 		Double complet2 = wsp2 * wrp2;
 
 		Double complet = complet1 - complet2;
 
-        Log.e("calcularCaracteristicas", "Antes de darle valores a x");
+        //Log.e("calcularCaracteristicas", "Antes de darle valores a x");
 
 		//TODO Revisar resultados con distintas combinaciones
 		x[0] = serveadv;
 		//x[1] = complet;
 		x[1] = 0.0;
-		x[2] = this.calcularDirect(jug1, jug2, superficie);
+		x[2] = this.calcularDirect(jug1, jug2, superficie, wr);
 		//x[3] = calcularAces(superf1, superf2);
 		x[3] = 0.0;
 		x[4] = probSuperficie;
@@ -263,7 +268,7 @@ public class Main {
 		return x;
 	} // Cierre calcularCaracteristicas
 	
-	private double calcularDirect(Jugador jug1, Jugador jug2, String superficie) throws IOException {
+	private double calcularDirect(Jugador jug1, Jugador jug2, String superficie, Boolean wr) throws IOException {
 		String nombre2 = jug2.getNombre();
 		Integer victorias1 = 0, victorias2 = 0, totalPartidos = 0;
 		double por1, por2;
@@ -292,10 +297,10 @@ public class Main {
 
 		por1 = (float) victorias1 / totalPartidos;
 		por2 = (float) victorias2 / totalPartidos;
-
-        ((TextView) view.findViewById(R.id.textDirectJug1)).setText(Double.toString(Math.round(por1 * 10000d) / 10000d));
-        ((TextView) view.findViewById(R.id.textDirectJug2)).setText(Double.toString(Math.round(por2 * 10000d) / 10000d));
-
+		if (wr == true) {
+			((TextView) view.findViewById(R.id.textDirectJug1)).setText(Double.toString(Math.round(por1 * 10000d) / 10000d));
+			((TextView) view.findViewById(R.id.textDirectJug2)).setText(Double.toString(Math.round(por2 * 10000d) / 10000d));
+		}
 		return por1 - por2;
 
 	} // Cierre calcularDirect
@@ -312,7 +317,7 @@ public class Main {
 		Jugador jug1 = this.leerJSONJugador("2015", jugador1);
 		Jugador jug2 = this.leerJSONJugador("2015", jugador2);
 
-		x = calcularCaracteristicas(jug1, jug2, superficie, year);
+		x = calcularCaracteristicas(jug1, jug2, superficie, year, true);
 		for (int j = 0; j < x.length; j++) {
 			hipotesis += x[j] * beta[j];
 		}

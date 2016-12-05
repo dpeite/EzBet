@@ -1,5 +1,6 @@
 package desbancandowilliamhill.betfail;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -65,6 +66,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Pasamos a la siguiente actividad
         startActivity(intent);
+    }
+
+    public void calcular_betas(View v){
+        Main test = new Main(getApplicationContext());
+        test.obtenerBeta();
     }
 
     private ArrayList<String> leerTxt(String nombre) {

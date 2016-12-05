@@ -17,7 +17,7 @@
         android:theme="@style/MyButton"
         android:onClick="obtenerGanador"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentStart="true" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -94,5 +94,15 @@
             android:textAlignment="textStart"
             android:dropDownWidth="match_parent" />
     </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Calcular betas"
+        android:id="@+id/button2"
+        android:theme="@style/MyButton"
+        android:onClick="calcular_betas"
+        android:layout_alignTop="@+id/button"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>
