@@ -69,8 +69,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void calcular_betas(View v){
-        Main test = new Main(getApplicationContext());
-        test.obtenerBeta();
+       /* Main test = new Main(getApplicationContext());
+        test.obtenerBeta();*/
+
+        Intent intent = new Intent(this, BetasActivity.class);
+        startActivity(intent);
     }
 
     private ArrayList<String> leerTxt(String nombre) {

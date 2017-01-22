@@ -21,6 +21,10 @@
         <activity android:name=".ResultsActivity" />
         <activity android:name=".LoggerActivity" >
         </activity>
+        <activity android:name=".BetasActivity" >
+        </activity>
+        <activity android:name=".CalculoBetas" >
+        </activity>
     </application>
 
 </manifest>

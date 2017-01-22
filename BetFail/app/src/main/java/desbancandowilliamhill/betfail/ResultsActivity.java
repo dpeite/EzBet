@@ -15,7 +15,8 @@ import desbancandowilliamhill.betfail.machineLearning.Main;
 
 public class ResultsActivity extends AppCompatActivity {
 
-    private static Double[] beta = new Double[] {0.9996293074506556, 1.0, 0.9877174795248658, 1.0, 0.9977511270260427};
+    public static Double[] beta = null;
+    public static Double[] beta_fija = new Double[] {0.9996293074506556, 1.0, 0.9877174795248658, 1.0, 0.9977511270260427};
     private static StringWriter sw = new StringWriter();
 
     @Override
@@ -34,6 +35,10 @@ public class ResultsActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.textJugador2)).setText(n2);
 
         Main test = new Main(getApplicationContext(), findViewById(android.R.id.content), this.sw);
+
+        if (beta == null) {
+            beta = beta_fija;
+        }
         try {
             this.sw = test.estimarResultado(n1, n2, superf,"2015", beta);
         } catch(Exception e) {
@@ -43,8 +48,8 @@ public class ResultsActivity extends AppCompatActivity {
     } // Cierre onCreate
 
     public void mostrarlog(View v) {
-        Toast.makeText(ResultsActivity.this, "Huehuehuehue",
-                Toast.LENGTH_LONG).show();
+        /*Toast.makeText(ResultsActivity.this, "Huehuehuehue",
+                Toast.LENGTH_LONG).show();*/
         Intent intent = new Intent(this, LoggerActivity.class);
 
         intent.putExtra("log", this.sw.toString());
