@@ -40,10 +40,9 @@ public class Main {
 		this.context = context;
 	}
 
-    public void obtenerBeta() {
+    public Double[] obtenerBeta() {
 
         Double[] beta = new Double[size];
-        int aux = 0;
 
         for (int i = 0; i < size; i++) {
             beta[i] = 1.0;
@@ -51,10 +50,9 @@ public class Main {
 
         try {
             for (int i = 2004; i < 2015; i++) {
-                Log.d("Iteracion", Integer.toString(i));
+                Log.d("Iteracion2: ", Integer.toString(i));
                 jugadores.add(getJugadores(Integer.toString(i)));
-                beta = logisticRegression(jugadoresList.get(i - 2004), Integer.toString(i));
-                aux++;
+                beta = logisticRegression(jugadoresList.get(i - 2004), Integer.toString(i), beta);
             }
 
             Log.d("DEBUG", "Todo va como dios manda");
@@ -64,53 +62,39 @@ public class Main {
             Log.d("DEBUG", Double.toString(beta[3]));
             Log.d("DEBUG", Double.toString(beta[4]));
 
-            //	double por = (float) testeoSistema(beta) * 100.0;
+			testeoSistema(beta);
 
-            //	System.out.println("El porcentaje de acierto del sistema es del " + por + "%.");
         } catch (Exception e) {
             Log.e("Exception", e.getMessage());
         }
+
+		return beta;
     }
 
-	private Double[] logisticRegression(ArrayList<Jugador> data, String year) throws IOException {
+	private Double[] logisticRegression(ArrayList<Jugador> data, String year, Double[] beta) throws IOException {
 		Jugador jug2;
-
-		Double[] x, beta = new Double[size];
-		
-		// Generamos el vector de pesos
-		for (int i = 0; i < size; i++) {
-			beta[i] = 1.0;	
-		}
+		Double[] x;
 
 		double hipotesis = 0.0;
 		ArrayList<Partido> partidos;
-		ArrayList<Double> listaHipo = new ArrayList<>();
-		ArrayList<Double[]> listaX = new ArrayList<>();
 
 		for (Jugador jug1 : data) {
 			partidos = jug1.getPartidos();
 
 			for (Partido part : partidos) {
 				jug2 = this.leerJSONJugador(year, part.getContrincante());
-
 				x = calcularCaracteristicas(jug1, jug2, part.getSuperficie(), year, false);
 
 				for (int j = 0; j < x.length; j++) {
 					hipotesis += x[j] * beta[j];
 				}
 
-				listaHipo.add(sigmoid(hipotesis));
-				listaX.add(x);
+				beta = derivadaFuncionCoste(x, sigmoid(hipotesis), beta);
+
 				hipotesis = 0.0;
 				x = new Double[size];
-
 			} // Cierre for Partidos
 		} // Cierre for Jugadores
-
-		beta = derivadaFuncionCoste(listaX, listaHipo, beta);
-
-		listaHipo = new ArrayList<Double>();
-		listaX = new ArrayList<Double[]>();
 
 		return beta;
 	}
@@ -130,41 +114,23 @@ public class Main {
 		return sigmoid(hipotesis);
 	} // Cierre estimarResultado
 
-	private static Double[] derivadaFuncionCoste(ArrayList<Double[]> listX, ArrayList<Double> listHipotesis,
-			Double[] theta) {
+	private static Double[] derivadaFuncionCoste(Double[] x, Double hipotesis, Double[] theta) {
 
 		double alpha = 0.05;
-        Double[] aux = new Double[size];
-        int tam = listX.size();
+        Double[] aux = new Double[x.length];
 
-        for (int i = 0; i < tam; i++) {
+       /* for (int i = 0; i < tam; i++) {
             for (int j = 0; j < size; j++) {
                 aux[j] += (listHipotesis.get(i) - 1) * listX.get(i)[j];
                 aux[j] /= tam;
                 theta[j] -= alpha * aux[j];
             }
-        }
+        } */
 
-        /*
-		for (int i = 0; i < listX.size(); i++) {
-			aux0 += (listHipotesis.get(i) - 1) * listX.get(i)[0];
-			aux1 += (listHipotesis.get(i) - 1) * listX.get(i)[1];
-			aux2 += (listHipotesis.get(i) - 1) * listX.get(i)[2];
-			aux3 += (listHipotesis.get(i) - 1) * listX.get(i)[3];
-			aux4 += (listHipotesis.get(i) - 1) * listX.get(i)[4];
+		for (int i = 0; i < x.length; i++) {
+			aux[i] = (hipotesis - 1) * x[i];
+			theta[i] -= alpha * aux[i];
 		}
-
-		aux0 = aux0 / listX.size();
-        aux1 = aux1 / listX.size();
-		aux2 = aux2 / listX.size();
-		aux3 = aux3 / listX.size();
-		aux4 = aux4 / listX.size();
-
-		theta[0] -= alpha * aux0;
-		theta[1] -= alpha * aux1;
-		theta[2] -= alpha * aux2;
-		theta[3] -= alpha * aux3;
-		theta[4] -= alpha * aux4; */
 
 		return theta;
 	}
@@ -253,8 +219,6 @@ public class Main {
 		Double complet2 = wsp2 * wrp2;
 
 		Double complet = complet1 - complet2;
-
-        //Log.e("calcularCaracteristicas", "Antes de darle valores a x");
 
 		//TODO Revisar resultados con distintas combinaciones
 		x[0] = serveadv;

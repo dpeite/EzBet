@@ -43,7 +43,12 @@ public class BetasActivity extends AppCompatActivity {
     }
     public void calcular_betas(View v){
         Main test = new Main(getApplicationContext());
-        test.obtenerBeta();
+        beta = test.obtenerBeta();
+
+        ((TextView) findViewById(R.id.beta1)).setText(beta[0].toString());
+        ((TextView) findViewById(R.id.beta2)).setText(beta[2].toString());
+        ((TextView) findViewById(R.id.beta3)).setText(beta[4].toString());
+
         /*Intent intent = new Intent(this, CalculoBetas.class);
         startActivity(intent);*/
     }
